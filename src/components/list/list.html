@@ -1,0 +1,145 @@
+<section class="list">
+  <div v-if="getArrayFromDataObj(data).length">
+    <div class="header-block">
+      <div class="header-block-content">
+        <div
+          v-for="(item, index) in headerFields"
+          :key="index"
+          class="header-block-item"
+        >
+          <div class="header-label">
+            {{ item[0] }}
+          </div>
+          <div class="header-value">
+            {{ item[1] }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="q-pa-md">
+      <q-table
+        :data="getArrayFromDataObj(data)"
+        :columns="columns"
+        row-key="name"
+        :pagination.sync="pagination"
+        :loading="loading"
+        @request="onRequest"
+        class="crypto-table"
+      >
+        <template v-slot:header="props">
+          <q-tr :props="props">
+            <q-th
+              v-for="col in props.cols"
+              :key="col.name"
+              :props="props"
+              :class="col.name+'-block table-headers'"
+            >
+              {{ col.label }}
+            </q-th>
+          </q-tr>
+        </template>
+
+        <template v-slot:body="props">
+          <q-tr
+            :props="props"
+            class="data-row"
+            @click="openCoinInfoBlock(props.row)"
+            v-bind:class="getRowClassName(props.cols[1].value.name)"
+          >
+            <q-td :key="props.cols[0].name" :props="props" class="rank-block">
+              {{ props.cols[0].value }}
+            </q-td>
+
+            <q-td :key="props.cols[1].name" :props="props">
+              <div class="coin-name-section">
+                <div style="padding:0 10px 0 0">
+                  <img
+                    :src="getImageURL(props.cols[1].value)"
+                    width="30"
+                    height="30"
+                  />
+                </div>
+                <div>
+                  <div class="coin-name">{{ props.cols[1].value.name }}</div>
+                  <div class="coin-anagram">
+                    {{ props.cols[1].value.symbol }}
+                  </div>
+                </div>
+              </div>
+            </q-td>
+
+            <q-td :key="props.cols[2].name" :props="props" class="data-cell">
+              $ {{ getPriceValue(+props.cols[2].value) }}
+            </q-td>
+
+            <q-td :key="props.cols[3].name" :props="props" class="data-cell">
+              $ {{ props.cols[3].value }}
+            </q-td>
+
+            <q-td :key="props.cols[4].name" :props="props" class="data-cell">
+              $ {{ (+props.cols[4].value).toFixed(4) }}
+            </q-td>
+
+            <q-td :key="props.cols[5].name" :props="props" class="data-cell">
+              $ {{ props.cols[5].value }}
+            </q-td>
+
+            <q-td :key="props.cols[6].name" :props="props" class="data-cell">
+              $ {{ props.cols[6].value }}
+            </q-td>
+
+            <q-td
+              :key="props.cols[7].name"
+              :props="props"
+              v-bind:class="{'percent-down': props.cols[7].value < 0, 'percent-up': props.cols[7].value > 0, 'data-cell':true }"
+            >
+              {{ (+props.cols[7].value).toFixed(2) }}%
+            </q-td>
+          </q-tr>
+          <q-tr v-show="props.row.symbol == selectedCoin" :props="props">
+            <q-td colspan="100%">
+              <div v-if="isChartLoading" class="loading-container">
+                <q-circular-progress
+                  indeterminate
+                  size="80px"
+                  :thickness="0.22"
+                  color="blue"
+                  track-color="grey-3"
+                  class="q-ma-md"
+                />
+              </div>
+              <div
+                class="text-left"
+                v-if="!isChartLoading && series[0].data.length"
+              >
+                <apexchart
+                  :name="props.cols[1].value.name"
+                  type="area"
+                  height="350"
+                  :options="chartOptions"
+                  :series="series"
+                ></apexchart>
+              </div>
+              <div
+                class="loading-container"
+                v-if="!isChartLoading && !series[0].data.length"
+              >
+                <div class="info-text">Sorry, No Chart Available</div>
+              </div>
+            </q-td>
+          </q-tr>
+        </template>
+      </q-table>
+    </div>
+  </div>
+  <div v-if="!getArrayFromDataObj(data).length" class="page-loading-indicator">
+    <q-circular-progress
+      indeterminate
+      size="80px"
+      :thickness="0.22"
+      color="blue"
+      track-color="grey-3"
+      class="q-ma-md"
+    />
+  </div>
+</section>
